@@ -140,7 +140,7 @@ Fichier : [`equations_non_lineaires/newton.py`](equations_non_lineaires/newton.p
 
 $$x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)} = x_n - \frac{x_n^3 - 2}{3x_n^2}$$
 
-**Condition de convergence (Fourier).** Si $f(a) \cdot f(b) < 0$, si $f'$ et $f''$ ne s'annulent pas sur $[a, b]$ et si le point de départ $x_0 \in [a, b]$ vérifie $f(x_0) \cdot f''(x_0) > 0$, la suite converge de façon monotone. Avec $x_0 = 2$ : $f(2) = 6 > 0$ et $f''(2) = 12 > 0$. Le programme affiche un avertissement si cette condition n'est pas remplie.
+**Condition de convergence (Fourier).** Si $f(a) \cdot f(b) < 0$, si $f'$ et $f''$ ne s'annulent pas sur $[a, b]$ et si le point de départ $x_0 \in [a, b]$ vérifie $f(x_0) \cdot f''(x_0) > 0$, la suite converge de façon monotone. Avec $x_0 = 2$ : $f(2) = 6 > 0$ et $f''(2) = 12 > 0$. Le programme vérifie la dernière condition et affiche un avertissement si $f(x_0) \cdot f''(x_0) \leq 0$.
 
 **Critère d'arrêt.** $|x_{n+1} - x_n| < \varepsilon$.
 
@@ -160,7 +160,7 @@ Même équation, même précision demandée ($\varepsilon = 0{,}01$) :
 
 Newton est de loin la plus rapide et la plus précise ; la dichotomie est la plus robuste. En pratique, on combine souvent les deux : quelques itérations de dichotomie pour s'approcher de la racine, puis Newton pour converger vite.
 
-> Les critères d'arrêt ne sont pas identiques (borne d'erreur pour la dichotomie et le point fixe, écart entre deux itérés pour Newton). Si Newton dépasse largement la précision demandée, c'est grâce à sa convergence quadratique : au moment où l'écart entre deux itérés passe sous $\varepsilon$, l'erreur sur le dernier itéré est déjà de l'ordre de son carré.
+> Les critères d'arrêt ne sont pas identiques (borne d'erreur pour la dichotomie et le point fixe, écart entre deux itérés pour Newton). Si Newton dépasse largement la précision demandée, c'est grâce à sa convergence quadratique : au moment où l'écart entre deux itérés passe sous $\varepsilon$, l'erreur sur le dernier itéré est déjà de l'ordre du carré de cet écart.
 
 ---
 
@@ -182,4 +182,4 @@ $$P(t) = \frac{5}{2}\,t - \frac{3}{2}\,t^2, \qquad P(0{,}5) = 0{,}875, \qquad P(
 | Lagrange | [`interpolation/lagrange.py`](interpolation/lagrange.py) | $P(x) = \sum_i y_i\, L_i(x)$ avec $L_i(x) = \prod_{j \neq i} \frac{x - t_j}{t_i - t_j}$. Aucun système à résoudre. |
 | Newton | [`interpolation/newton.py`](interpolation/newton.py) | Coefficients obtenus par le tableau des différences divisées, évaluation par le schéma de Horner. Ajouter un point ne remet pas en cause les calculs déjà faits. |
 
-**Pourquoi trois méthodes ?** La méthode directe est la plus intuitive, mais la matrice de Vandermonde devient **mal conditionnée** quand le nombre de points augmente : de petites erreurs d'arrondi produisent de grandes erreurs sur les coefficients. Lagrange évite le système linéaire, mais tous les $L_i$ changent dès qu'on ajoute un point. Newton cumule les deux avantages, ce qui en fait la méthode la plus utilisée en pratique.
+**Pourquoi trois méthodes ?** La méthode directe est la plus intuitive, mais la matrice de Vandermonde devient **mal conditionnée** quand le nombre de points augmente : de petites erreurs d'arrondi produisent de grandes erreurs sur les coefficients. Lagrange évite le système linéaire, mais tous les $L_i$ changent dès qu'on ajoute un point. Newton cumule les deux avantages, ce qui en fait souvent la méthode préférée en pratique.
