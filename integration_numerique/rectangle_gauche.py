@@ -1,4 +1,5 @@
 """Intégrale de exp(-x^2) sur [0, 1] par la méthode des rectangles à gauche."""
+
 import math
 
 from rich.console import Console
@@ -8,14 +9,14 @@ console = Console()
 
 
 def f(x: float) -> float:
-    return math.exp(-x**2)
+    return math.exp(-(x**2))
 
 
-def rectangle_gauche(f, a: float, b: float, n: int) -> float:
+def rectangle_gauche(f, a: float, b: float, n: int, afficher: bool = False) -> float:
     """I ≈ h * [f(x_0) + f(x_1) + ... + f(x_{n-1})], avec h = (b - a) / n."""
     h = (b - a) / n
 
-    table = Table(title=f"Rectangles à gauche : h = {h}")
+    table = Table(title=f"Rectangles à gauche : n = {n}, h = {h}")
     for col in ["i", "x_i", "f(x_i)", "Aire h·f(x_i)"]:
         table.add_column(col, justify="right")
 
@@ -24,10 +25,13 @@ def rectangle_gauche(f, a: float, b: float, n: int) -> float:
         x = a + i * h
         fx = f(x)
         somme += fx
-        table.add_row(str(i), f"{x:.1f}", f"{fx:.6f}", f"{h * fx:.6f}")
+        table.add_row(str(i), f"{x:.3f}", f"{fx:.6f}", f"{h * fx:.6f}")
 
-    table.add_row("", "[bold]Somme[/]", f"[bold]{somme:.6f}[/]", f"[bold]{h * somme:.6f}[/]")
-    console.print(table)
+    table.add_row(
+        "", "[bold]Somme[/]", f"[bold]{somme:.6f}[/]", f"[bold]{h * somme:.6f}[/]"
+    )
+    if afficher:
+        console.print(table)
     return h * somme
 
 
@@ -35,19 +39,25 @@ if __name__ == "__main__":
     a, b, n = 0.0, 1.0, 1000
     h = (b - a) / n
 
+    # Détail du calcul sur un petit n, lisible à l'écran
+    rectangle_gauche(f, a, b, 10, afficher=True)
+
     approx = rectangle_gauche(f, a, b, n)
 
     # Pas de primitive usuelle : la valeur exacte s'exprime avec erf
     exacte = math.sqrt(math.pi) / 2 * math.erf(1)
 
     erreur = approx - exacte
-    max_df = math.sqrt(2) * math.exp(-0.5)  # max de |f'(x)| = |-2x e^{-x^2}|, en x = 1/sqrt(2)
+    # max de |f'(x)| = |-2x e^{-x^2}|, atteint en x = 1/sqrt(2)
+    max_df = math.sqrt(2) * math.exp(-0.5)
     borne = (b - a) * h / 2 * max_df
     estimation = h / 2 * (f(a) - f(b))
 
     console.print(f"\n[bold green]Approximation :[/]        {approx:.6f}")
     console.print(f"[bold]Valeur exacte :[/]        {exacte:.6f}  (√π/2 · erf(1))")
-    console.print(f"[bold]Erreur :[/]               {erreur:+.6f}  ({abs(erreur) / exacte:.2%})")
+    console.print(
+        f"[bold]Erreur :[/]               {erreur:+.6f}  ({abs(erreur) / exacte:.2%})"
+    )
     console.print(f"[bold]Borne théorique :[/]      {borne:.6f}")
     console.print(f"[bold]Estimation h/2·(f(a)-f(b)) :[/] {estimation:.6f}")
 

@@ -23,8 +23,9 @@ Chaque méthode est accompagnée d'une **fiche théorique** (fichier `.md` du m�
 - [Partie 2 : interpolation polynomiale](#partie-2--interpolation-polynomiale)
 - [Partie 3 : intégration numérique](#partie-3--intégration-numérique)
   - [Méthode des rectangles à gauche](#méthode-des-rectangles-à-gauche)
+  - [Méthode des rectangles à droite](#méthode-des-rectangles-à-droite)
   - [Méthode de Simpson](#méthode-de-simpson)
-  - [Comparaison des deux méthodes](#comparaison-des-deux-méthodes)
+  - [Comparaison des méthodes d'intégration](#comparaison-des-méthodes-dintégration)
 
 ## Structure du projet
 
@@ -51,10 +52,14 @@ analyse-numerique/
 └── integration_numerique/      # Partie 3 : approcher une intégrale
     ├── __init__.py
     ├── rectangle_gauche.py
-    └── simpson.py
+    ├── rectangle_gauche.md
+    ├── rectangle_droite.py
+    ├── rectangle_droite.md
+    ├── simpson.py
+    └── simpson.md
 ```
 
-Chaque fichier `.py` est autonome : il contient la méthode, l'exemple et l'affichage des résultats. Le fichier `.md` du même nom en donne les fondements théoriques (théorèmes, idées de preuve, limites).
+Chaque fichier `.py` contient la méthode, l'exemple et l'affichage des résultats. Il est autonome, à une exception près : `rectangle_droite.py` réutilise la fonction de `rectangle_gauche.py` pour comparer les deux méthodes. Le fichier `.md` du même nom en donne les fondements théoriques (théorèmes, idées de preuve, limites).
 
 Les fichiers `__init__.py` déclarent explicitement chaque dossier comme un paquet Python. Les deux fichiers `newton.py` ne se gênent donc pas : l'un est `equations_non_lineaires.newton`, l'autre `interpolation.newton`.
 
@@ -104,6 +109,10 @@ Partie 3 :
 
 ```bash
 uv run python -m integration_numerique.rectangle_gauche
+```
+
+```bash
+uv run python -m integration_numerique.rectangle_droite
 ```
 
 ```bash
@@ -222,7 +231,7 @@ La fiche [`directe.md`](interpolation/directe.md) démontre le théorème d'exis
 
 ### Le problème commun
 
-Les deux méthodes approchent la **même intégrale** :
+Toutes les méthodes approchent la **même intégrale** :
 
 $$I = \int_0^1 e^{-x^2}\,dx$$
 
@@ -230,11 +239,11 @@ La fonction $e^{-x^2}$ n'a pas de primitive qui s'exprime avec les fonctions usu
 
 $$I = \frac{\sqrt{\pi}}{2}\,\mathrm{erf}(1) \approx 0{,}746824132812$$
 
-Dans les deux méthodes, on découpe $[a, b]$ en $n$ sous-intervalles de même largeur $h = \frac{b-a}{n}$, de bornes $x_i = a + i\,h$.
+Dans toutes les méthodes, on découpe $[a, b]$ en $n$ sous-intervalles de même largeur $h = \frac{b-a}{n}$, de bornes $x_i = a + i\,h$.
 
 ### Méthode des rectangles à gauche
 
-Code : [`rectangle_gauche.py`](integration_numerique/rectangle_gauche.py)
+Code : [`rectangle_gauche.py`](integration_numerique/rectangle_gauche.py) | Théorie : [`rectangle_gauche.md`](integration_numerique/rectangle_gauche.md)
 
 **Principe.** Sur chaque sous-intervalle, on remplace $f$ par la constante $f(x_i)$, sa valeur au **bord gauche**. L'aire sous la courbe devient une somme d'aires de rectangles :
 
@@ -250,11 +259,41 @@ Ici $\max |f'| = \sqrt{2}\,e^{-1/2} \approx 0{,}858$, atteint en $x = \frac{1}{\
 
 **Résultat** avec $n = 1000$ : $I \approx 0{,}747140$, erreur $+3{,}16 \times 10^{-4}$, sous la borne théorique ($4{,}29 \times 10^{-4}$). L'estimation $\frac{h}{2}(f(a) - f(b))$ donne exactement l'erreur observée.
 
-**À retenir.** Méthode d'**ordre 1** : l'erreur est proportionnelle à $h$. Quand on double $n$, l'erreur est divisée par 2 (le script affiche des rapports de 1,98 à 2,00). Il faut beaucoup de points pour une bonne précision.
+**À retenir.** Méthode d'**ordre 1** : l'erreur est proportionnelle à $h$. Quand on double $n$, l'erreur est divisée par 2 (le script affiche des rapports de 1,98 à 2,00). Il faut beaucoup de points pour une bonne précision : environ 430 000 sous-intervalles pour garantir une erreur inférieure à $10^{-6}$.
+
+### Méthode des rectangles à droite
+
+Code : [`rectangle_droite.py`](integration_numerique/rectangle_droite.py) | Théorie : [`rectangle_droite.md`](integration_numerique/rectangle_droite.md)
+
+**Principe.** C'est le miroir de la méthode précédente : on remplace $f$ par sa valeur au **bord droit** $f(x_{i+1})$.
+
+$$I \approx h\,\big[f(x_1) + f(x_2) + \dots + f(x_n)\big]$$
+
+Le point $x_0 = a$ n'est pas utilisé. Les deux sommes ne diffèrent que par leurs extrémités : $D_n = R_n + h\,\big(f(b) - f(a)\big)$, où $R_n$ et $D_n$ désignent les sommes à gauche et à droite.
+
+**Erreur.** Même borne que pour les rectangles à gauche, mais une estimation de **signe opposé** :
+
+$$|E| \leq \frac{(b-a)\,h}{2}\,\max_{[a,b]} |f'|, \qquad E \approx \frac{h}{2}\,\big(f(b) - f(a)\big)$$
+
+Comme $f$ est décroissante, chaque rectangle reste sous la courbe : la méthode **sous-estime** l'intégrale.
+
+**Résultat** avec $n = 10$ : $I \approx 0{,}714605$, erreur $-3{,}22 \times 10^{-2}$, sous la borne théorique ($4{,}29 \times 10^{-2}$). Méthode d'**ordre 1**, comme les rectangles à gauche.
+
+**Encadrement.** Pour une fonction monotone, les deux méthodes encadrent la valeur exacte. Ici, avec $n = 10$ :
+
+$$D_{10} \leq I \leq R_{10} \qquad \text{soit} \qquad 0{,}7146 \leq I \leq 0{,}7778$$
+
+C'est une garantie obtenue **sans connaître** $I$.
+
+**Vers la méthode des trapèzes.** Les erreurs à gauche et à droite sont presque opposées, donc leur **moyenne** les fait presque disparaître :
+
+$$T_n = \frac{R_n + D_n}{2} = h\left[\frac{f(x_0)}{2} + f(x_1) + \dots + f(x_{n-1}) + \frac{f(x_n)}{2}\right]$$
+
+C'est la **méthode des trapèzes** : on remplace $f$ par le segment qui relie $f(x_i)$ à $f(x_{i+1})$. Avec $n = 10$, l'erreur tombe à $-6{,}1 \times 10^{-4}$, soit environ 50 fois moins, pour le même nombre d'évaluations de $f$. Les termes en $h$ se compensent et il ne reste qu'une erreur en $h^2$ : la méthode des trapèzes est d'**ordre 2**. Le script affiche cette comparaison.
 
 ### Méthode de Simpson
 
-Code : [`simpson.py`](integration_numerique/simpson.py)
+Code : [`simpson.py`](integration_numerique/simpson.py) | Théorie : [`simpson.md`](integration_numerique/simpson.md)
 
 **Principe.** On regroupe les sous-intervalles **deux par deux**. Sur chaque paire $[x_{2j}, x_{2j+2}]$, on remplace $f$ par la **parabole** qui passe par les trois points $x_{2j}$, $x_{2j+1}$, $x_{2j+2}$, et on intègre exactement cette parabole. On obtient :
 
@@ -277,13 +316,19 @@ Ici $f^{(4)}(x) = (16x^4 - 48x^2 + 12)\,e^{-x^2}$, dont la valeur absolue est ma
 
 **À retenir.** Méthode d'**ordre 4** : l'erreur est proportionnelle à $h^4$. Quand on double $n$, l'erreur est divisée par $2^4 = 16$ (le script affiche des rapports qui tendent vers 16). Bonus : comme l'erreur dépend de $f^{(4)}$, Simpson est **exacte pour les polynômes de degré 3**, alors qu'elle n'utilise que des paraboles.
 
-### Comparaison des deux méthodes
+Pour garantir une erreur inférieure à $10^{-6}$, la borne théorique impose $n \geq 16{,}1$ : comme $n$ doit être pair, **$n = 18$** suffit, contre environ 430 000 pour les rectangles.
+
+### Comparaison des méthodes d'intégration
 
 Même intégrale, même nombre de sous-intervalles ($n = 10$, soit une dizaine d'évaluations de $f$) :
 
 | Méthode | Évaluations de $f$ | Erreur | Ordre | Si $n$ double, l'erreur est divisée par |
 |---|---:|---:|---:|---:|
-| Rectangles à gauche | 10 | $3{,}10 \times 10^{-2}$ | 1 | 2 |
-| Simpson | 11 | $8{,}15 \times 10^{-7}$ | 4 | 16 |
+| Rectangles à gauche | 10 | $+3{,}10 \times 10^{-2}$ | 1 | 2 |
+| Rectangles à droite | 10 | $-3{,}22 \times 10^{-2}$ | 1 | 2 |
+| Trapèzes (moyenne des deux) | 11 | $-6{,}1 \times 10^{-4}$ | 2 | 4 |
+| Simpson | 11 | $+8{,}15 \times 10^{-7}$ | 4 | 16 |
 
-Pour presque le même coût de calcul, Simpson est environ **38 000 fois plus précise**. Même avec 1 000 rectangles, l'erreur ($3{,}16 \times 10^{-4}$) reste très au-dessus de celle de Simpson avec seulement 10 sous-intervalles. La méthode des rectangles reste utile pour comprendre l'idée de l'intégration numérique, mais on lui préfère en pratique les méthodes d'ordre élevé comme Simpson, à condition que $f$ soit assez régulière.
+Chaque gain d'ordre se paie à peine en calculs, mais améliore énormément la précision. Pour presque le même coût, les trapèzes sont environ 50 fois plus précis que les rectangles, et Simpson environ **750 fois plus précise que les trapèzes** (38 000 fois plus que les rectangles). Même avec 1 000 rectangles à gauche, l'erreur ($3{,}16 \times 10^{-4}$) reste très au-dessus de celle de Simpson avec seulement 10 sous-intervalles.
+
+Les rectangles restent utiles pour comprendre l'idée de l'intégration numérique et, combinés, pour encadrer l'intégrale d'une fonction monotone. En pratique, on leur préfère les méthodes d'ordre plus élevé comme Simpson, à condition que $f$ soit assez régulière.

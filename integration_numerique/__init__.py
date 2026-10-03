@@ -1,1 +1,1 @@
-"""Intégrale de exp(-x^2) sur [0, 1] par la méthode des rectangles à gauche."""
+"""Méthodes d'intégration numérique : rectangles à gauche, rectangles à droite, Simpson."""
