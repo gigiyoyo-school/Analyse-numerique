@@ -2,7 +2,13 @@
 
 Présentation, en Python, des principales méthodes d'analyse numérique vues en cours, chacune illustrée par un exemple complet dont toutes les itérations sont affichées dans un tableau.
 
-Le cœur du projet porte sur la **résolution d'équations non linéaires** $f(x) = 0$. Une seconde partie traite de l'**interpolation polynomiale**.
+Le projet couvre trois chapitres :
+
+1. la **résolution d'équations non linéaires** $f(x) = 0$, cœur du projet ;
+2. l'**interpolation polynomiale** ;
+3. l'**intégration numérique**.
+
+Chaque méthode est accompagnée d'une **fiche théorique** (fichier `.md` du même nom) qui énonce et démontre les théorèmes sur lesquels elle repose.
 
 ## Sommaire
 
@@ -15,6 +21,10 @@ Le cœur du projet porte sur la **résolution d'équations non linéaires** $f(x
   - [Méthode de Newton](#méthode-de-newton)
   - [Comparaison des trois méthodes](#comparaison-des-trois-méthodes)
 - [Partie 2 : interpolation polynomiale](#partie-2--interpolation-polynomiale)
+- [Partie 3 : intégration numérique](#partie-3--intégration-numérique)
+  - [Méthode des rectangles à gauche](#méthode-des-rectangles-à-gauche)
+  - [Méthode de Simpson](#méthode-de-simpson)
+  - [Comparaison des deux méthodes](#comparaison-des-deux-méthodes)
 
 ## Structure du projet
 
@@ -24,17 +34,27 @@ analyse-numerique/
 ├── pyproject.toml              # dépendances (numpy, rich)
 ├── equations_non_lineaires/    # Partie 1 : résoudre f(x) = 0
 │   ├── __init__.py
-│   ├── dichotomie.py
+│   ├── dichotomie.py           # code et exemple
+│   ├── dichotomie.md           # fiche théorique
 │   ├── point_fixe.py
-│   └── newton.py
-└── interpolation/              # Partie 2 : polynôme passant par des points donnés
+│   ├── point_fixe.md
+│   ├── newton.py
+│   └── newton.md
+├── interpolation/              # Partie 2 : polynôme passant par des points donnés
+│   ├── __init__.py
+│   ├── directe.py              # système de Vandermonde
+│   ├── directe.md
+│   ├── lagrange.py
+│   ├── lagrange.md
+│   ├── newton.py               # différences divisées
+│   └── newton.md
+└── integration_numerique/      # Partie 3 : approcher une intégrale
     ├── __init__.py
-    ├── directe.py              # système de Vandermonde
-    ├── lagrange.py
-    └── newton.py               # différences divisées
+    ├── rectangle_gauche.py
+    └── simpson.py
 ```
 
-Chaque fichier est autonome : il contient la méthode, l'exemple et l'affichage des résultats.
+Chaque fichier `.py` est autonome : il contient la méthode, l'exemple et l'affichage des résultats. Le fichier `.md` du même nom en donne les fondements théoriques (théorèmes, idées de preuve, limites).
 
 Les fichiers `__init__.py` déclarent explicitement chaque dossier comme un paquet Python. Les deux fichiers `newton.py` ne se gênent donc pas : l'un est `equations_non_lineaires.newton`, l'autre `interpolation.newton`.
 
@@ -80,6 +100,16 @@ uv run python -m interpolation.lagrange
 uv run python -m interpolation.newton
 ```
 
+Partie 3 :
+
+```bash
+uv run python -m integration_numerique.rectangle_gauche
+```
+
+```bash
+uv run python -m integration_numerique.simpson
+```
+
 ---
 
 ## Partie 1 : équations non linéaires
@@ -94,7 +124,7 @@ La solution exacte est $\alpha = \sqrt[3]{2} \approx 1{,}259921$. Elle existe et
 
 ### Méthode de dichotomie
 
-Fichier : [`equations_non_lineaires/dichotomie.py`](equations_non_lineaires/dichotomie.py)
+Code : [`dichotomie.py`](equations_non_lineaires/dichotomie.py) | Théorie : [`dichotomie.md`](equations_non_lineaires/dichotomie.md)
 
 **Principe.** Si $f$ est continue et $f(a) \cdot f(b) < 0$, une racine se trouve dans $[a, b]$ (théorème des valeurs intermédiaires). On calcule le milieu $m = \frac{a+b}{2}$ et on garde la moitié de l'intervalle où $f$ change de signe :
 
@@ -111,7 +141,7 @@ $$n \geq \log_2\left(\frac{b-a}{\varepsilon}\right) = \log_2(100) \approx 6{,}64
 
 ### Méthode du point fixe
 
-Fichier : [`equations_non_lineaires/point_fixe.py`](equations_non_lineaires/point_fixe.py)
+Code : [`point_fixe.py`](equations_non_lineaires/point_fixe.py) | Théorie : [`point_fixe.md`](equations_non_lineaires/point_fixe.md)
 
 **Principe.** On réécrit $f(x) = 0$ sous la forme $x = g(x)$, puis on itère $x_{n+1} = g(x_n)$. Ici :
 
@@ -134,7 +164,7 @@ $$|x_n - \alpha| \leq \frac{k}{1-k}\,|x_n - x_{n-1}| < \varepsilon$$
 
 ### Méthode de Newton
 
-Fichier : [`equations_non_lineaires/newton.py`](equations_non_lineaires/newton.py)
+Code : [`newton.py`](equations_non_lineaires/newton.py) | Théorie : [`newton.md`](equations_non_lineaires/newton.md)
 
 **Principe.** On remplace la courbe par sa tangente au point $x_n$ et on prend l'intersection de cette tangente avec l'axe des abscisses :
 
@@ -176,10 +206,84 @@ Les trois méthodes donnent **le même polynôme** (il est unique), écrit dans 
 
 $$P(t) = \frac{5}{2}\,t - \frac{3}{2}\,t^2, \qquad P(0{,}5) = 0{,}875, \qquad P(1{,}5) = 0{,}375$$
 
-| Méthode | Fichier | Idée |
-|---|---|---|
-| Directe | [`interpolation/directe.py`](interpolation/directe.py) | On écrit $P(t) = a_0 + a_1 t + a_2 t^2$ et on résout le système de Vandermonde $V a = y$. |
-| Lagrange | [`interpolation/lagrange.py`](interpolation/lagrange.py) | $P(x) = \sum_i y_i\, L_i(x)$ avec $L_i(x) = \prod_{j \neq i} \frac{x - t_j}{t_i - t_j}$. Aucun système à résoudre. |
-| Newton | [`interpolation/newton.py`](interpolation/newton.py) | Coefficients obtenus par le tableau des différences divisées, évaluation par le schéma de Horner. Ajouter un point ne remet pas en cause les calculs déjà faits. |
+| Méthode | Code | Théorie | Idée |
+|---|---|---|---|
+| Directe | [`directe.py`](interpolation/directe.py) | [`directe.md`](interpolation/directe.md) | On écrit $P(t) = a_0 + a_1 t + a_2 t^2$ et on résout le système de Vandermonde $V a = y$. |
+| Lagrange | [`lagrange.py`](interpolation/lagrange.py) | [`lagrange.md`](interpolation/lagrange.md) | $P(x) = \sum_i y_i\, L_i(x)$ avec $L_i(x) = \prod_{j \neq i} \frac{x - t_j}{t_i - t_j}$. Aucun système à résoudre. |
+| Newton | [`newton.py`](interpolation/newton.py) | [`newton.md`](interpolation/newton.md) | Coefficients obtenus par le tableau des différences divisées, évaluation par le schéma de Horner. Ajouter un point ne remet pas en cause les calculs déjà faits. |
 
 **Pourquoi trois méthodes ?** La méthode directe est la plus intuitive, mais la matrice de Vandermonde devient **mal conditionnée** quand le nombre de points augmente : de petites erreurs d'arrondi produisent de grandes erreurs sur les coefficients. Lagrange évite le système linéaire, mais tous les $L_i$ changent dès qu'on ajoute un point. Newton cumule les deux avantages, ce qui en fait souvent la méthode préférée en pratique.
+
+La fiche [`directe.md`](interpolation/directe.md) démontre le théorème d'existence et d'unicité commun aux trois méthodes ; [`lagrange.md`](interpolation/lagrange.md) traite aussi de l'erreur d'interpolation et du phénomène de Runge.
+
+---
+
+## Partie 3 : intégration numérique
+
+### Le problème commun
+
+Les deux méthodes approchent la **même intégrale** :
+
+$$I = \int_0^1 e^{-x^2}\,dx$$
+
+La fonction $e^{-x^2}$ n'a pas de primitive qui s'exprime avec les fonctions usuelles : c'est précisément le cas où l'on a besoin d'une méthode numérique. La valeur exacte, qui sert de référence, s'écrit avec la fonction d'erreur :
+
+$$I = \frac{\sqrt{\pi}}{2}\,\mathrm{erf}(1) \approx 0{,}746824132812$$
+
+Dans les deux méthodes, on découpe $[a, b]$ en $n$ sous-intervalles de même largeur $h = \frac{b-a}{n}$, de bornes $x_i = a + i\,h$.
+
+### Méthode des rectangles à gauche
+
+Code : [`rectangle_gauche.py`](integration_numerique/rectangle_gauche.py)
+
+**Principe.** Sur chaque sous-intervalle, on remplace $f$ par la constante $f(x_i)$, sa valeur au **bord gauche**. L'aire sous la courbe devient une somme d'aires de rectangles :
+
+$$I \approx h\,\big[f(x_0) + f(x_1) + \dots + f(x_{n-1})\big]$$
+
+Le point $x_n = b$ n'est pas utilisé.
+
+**Erreur.** Si $f$ est dérivable :
+
+$$|E| \leq \frac{(b-a)\,h}{2}\,\max_{[a,b]} |f'|, \qquad E \approx \frac{h}{2}\,\big(f(a) - f(b)\big)$$
+
+Ici $\max |f'| = \sqrt{2}\,e^{-1/2} \approx 0{,}858$, atteint en $x = \frac{1}{\sqrt{2}}$. Comme $f$ est décroissante, chaque rectangle dépasse la courbe : la méthode **surestime** l'intégrale.
+
+**Résultat** avec $n = 1000$ : $I \approx 0{,}747140$, erreur $+3{,}16 \times 10^{-4}$, sous la borne théorique ($4{,}29 \times 10^{-4}$). L'estimation $\frac{h}{2}(f(a) - f(b))$ donne exactement l'erreur observée.
+
+**À retenir.** Méthode d'**ordre 1** : l'erreur est proportionnelle à $h$. Quand on double $n$, l'erreur est divisée par 2 (le script affiche des rapports de 1,98 à 2,00). Il faut beaucoup de points pour une bonne précision.
+
+### Méthode de Simpson
+
+Code : [`simpson.py`](integration_numerique/simpson.py)
+
+**Principe.** On regroupe les sous-intervalles **deux par deux**. Sur chaque paire $[x_{2j}, x_{2j+2}]$, on remplace $f$ par la **parabole** qui passe par les trois points $x_{2j}$, $x_{2j+1}$, $x_{2j+2}$, et on intègre exactement cette parabole. On obtient :
+
+$$I \approx \frac{h}{3}\,\big[f(x_0) + 4f(x_1) + 2f(x_2) + 4f(x_3) + \dots + 2f(x_{n-2}) + 4f(x_{n-1}) + f(x_n)\big]$$
+
+Les coefficients suivent le motif $1, 4, 2, 4, \dots, 2, 4, 1$. Le nombre de sous-intervalles $n$ doit être **pair** : le script lève une erreur sinon.
+
+**Erreur.** Si $f$ est de classe $C^4$ :
+
+$$|E| \leq \frac{(b-a)\,h^4}{180}\,\max_{[a,b]} |f^{(4)}|$$
+
+Ici $f^{(4)}(x) = (16x^4 - 48x^2 + 12)\,e^{-x^2}$, dont la valeur absolue est maximale en $x = 0$ : $\max |f^{(4)}| = 12$.
+
+**Résultat.**
+
+| $n$ | Approximation | Erreur | Borne théorique |
+|---:|---:|---:|---:|
+| 10 | 0,746824948254 | $8{,}15 \times 10^{-7}$ | $6{,}67 \times 10^{-6}$ |
+| 100 | 0,746824132894 | $8{,}17 \times 10^{-11}$ | $6{,}67 \times 10^{-10}$ |
+
+**À retenir.** Méthode d'**ordre 4** : l'erreur est proportionnelle à $h^4$. Quand on double $n$, l'erreur est divisée par $2^4 = 16$ (le script affiche des rapports qui tendent vers 16). Bonus : comme l'erreur dépend de $f^{(4)}$, Simpson est **exacte pour les polynômes de degré 3**, alors qu'elle n'utilise que des paraboles.
+
+### Comparaison des deux méthodes
+
+Même intégrale, même nombre de sous-intervalles ($n = 10$, soit une dizaine d'évaluations de $f$) :
+
+| Méthode | Évaluations de $f$ | Erreur | Ordre | Si $n$ double, l'erreur est divisée par |
+|---|---:|---:|---:|---:|
+| Rectangles à gauche | 10 | $3{,}10 \times 10^{-2}$ | 1 | 2 |
+| Simpson | 11 | $8{,}15 \times 10^{-7}$ | 4 | 16 |
+
+Pour presque le même coût de calcul, Simpson est environ **38 000 fois plus précise**. Même avec 1 000 rectangles, l'erreur ($3{,}16 \times 10^{-4}$) reste très au-dessus de celle de Simpson avec seulement 10 sous-intervalles. La méthode des rectangles reste utile pour comprendre l'idée de l'intégration numérique, mais on lui préfère en pratique les méthodes d'ordre élevé comme Simpson, à condition que $f$ soit assez régulière.
