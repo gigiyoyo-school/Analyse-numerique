@@ -1,0 +1,10 @@
+[project]
+name = "analyse-numerique"
+version = "0.1.0"
+description = "Méthodes d'analyse numérique illustrées en Python : équations non linéaires et interpolation"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.3",
+    "rich>=15.0.0",
+]
